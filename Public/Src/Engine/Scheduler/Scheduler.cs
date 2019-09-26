@@ -5495,7 +5495,7 @@ namespace BuildXL.Scheduler
                 return false;
             }
 
-            return PipGraph.IsPreservedOutputArtifact(artifact);
+            return PipGraph.IsPreservedOutputArtifact(artifact, m_configuration.Sandbox.UnsafeSandboxConfiguration.PreserveOutputsExcludeFilter);
         }
 
         [SuppressMessage("Microsoft.Design", "CA1033:InterfaceMethodsShouldBeCallableByChildTypes")]

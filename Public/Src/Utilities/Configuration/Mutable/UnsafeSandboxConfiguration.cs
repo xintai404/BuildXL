@@ -36,7 +36,7 @@ namespace BuildXL.Utilities.Configuration.Mutable
         /// </summary>
         public static readonly IUnsafeSandboxConfiguration SafeOptions = new UnsafeSandboxConfiguration()
         {
-            IgnorePreloadedDlls = false,            
+            IgnorePreloadedDlls = false,
         };
 
         /// <nodoc />
@@ -55,6 +55,7 @@ namespace BuildXL.Utilities.Configuration.Mutable
             SandboxKind = template.SandboxKind;
             ExistingDirectoryProbesAsEnumerations = template.ExistingDirectoryProbesAsEnumerations;
             PreserveOutputs = template.PreserveOutputs;
+            PreserveOutputsExcludeFilter = template.PreserveOutputsExcludeFilter;
             IgnoreGetFinalPathNameByHandle = template.IgnoreGetFinalPathNameByHandle;
             IgnoreDynamicWritesOnAbsentProbes = template.IgnoreDynamicWritesOnAbsentProbes;
             DoubleWritePolicy = template.DoubleWritePolicy;
@@ -111,5 +112,8 @@ namespace BuildXL.Utilities.Configuration.Mutable
 
         /// <inheritdoc />
         public bool IgnoreUndeclaredAccessesUnderSharedOpaques { get; set; }
+
+        /// <inheritdoc />
+        public string PreserveOutputsExcludeFilter { get; set; }
     }
 }

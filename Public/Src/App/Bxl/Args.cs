@@ -1058,6 +1058,10 @@ namespace BuildXL
                             CommandLineUtilities.ParseBoolEnumOption(opt, sign, PreserveOutputsMode.Enabled, PreserveOutputsMode.Disabled),
                             isUnsafe: true,
                             isEnabled: (() => sandboxConfiguration.UnsafeSandboxConfiguration.PreserveOutputs != PreserveOutputsMode.Disabled)),
+                        OptionHandlerFactory.CreateOption(
+                            "unsafe_PreserveOutputsExcludeFilter",
+                            (opt) => sandboxConfiguration.UnsafeSandboxConfigurationMutable.PreserveOutputsExcludeFilter =
+                            CommandLineUtilities.ParseStringOption(opt)),
                         // TODO: Remove this!
                         OptionHandlerFactory.CreateBoolOption(
                             "unsafe_SourceFileCanBeInsideOutputDirectory",

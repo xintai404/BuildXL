@@ -954,7 +954,7 @@ namespace BuildXL.Scheduler.Graph
         /// <summary>
         /// Checks if artifact is an output that should be preserved.
         /// </summary>
-        public bool IsPreservedOutputArtifact(in FileOrDirectoryArtifact artifact)
+        public bool IsPreservedOutputArtifact(in FileOrDirectoryArtifact artifact, string preserveOutputExclusionFilter)
         {
             Contract.Requires(artifact.IsValid);
 
@@ -967,9 +967,9 @@ namespace BuildXL.Scheduler.Graph
             PipId pipId = TryGetProducer(artifact);
             Contract.Assert(pipId.IsValid);
 
-            if (!PipTable.GetMutable(pipId).IsPreservedOutputsPip())
+            if (!PipTable.GetMutable(pipId).IsPreservedOutputsPipEnabled())
             {
-                // If AllowPreserveOutputs is disabled for the pip, return false before hydrating pip. 
+                // If AllowPreserveOutputs is disabled for the pip or disallowed by excludsion filter then return false before hydrating pip. 
                 return false;
             }
 
@@ -981,6 +981,12 @@ namespace BuildXL.Scheduler.Graph
             }
 
             Process process = PipTable.HydratePip(pipId, PipQueryContext.PreserveOutput) as Process;
+
+            if (!Pip.DeterminAllowPreserveOutputs(Context.StringTable, preserveOutputExclusionFilter, process.Tags))
+            {
+                return false;
+            }
+
             return PipArtifacts.IsPreservedOutputByPip(process, artifact.Path, Context.PathTable);
         }
 
