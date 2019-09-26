@@ -110,6 +110,14 @@ namespace BuildXL.Utilities.Configuration
         /// </remarks>
         bool IgnoreUndeclaredAccessesUnderSharedOpaques { get; }
 
+        /// <summary>
+        /// PreserveOutputs exclusion filter that whether if pip's AllowPreserveOutput should be respected or not 
+        /// </summary>
+        /// <remarts>
+        /// Use pip tag to do the filtering and mulitple tags are joined with ","
+        /// </remarts>
+        string PreserveOutputsExcludeFilter { get; }
+
         // NOTE: if you add a property here, don't forget to update UnsafeSandboxConfigurationExtensions
 
         // NOTE: whenever unsafe options change, the fingerprint version needs to be bumped
@@ -148,6 +156,11 @@ namespace BuildXL.Utilities.Configuration
             writer.Write(@this.MonitorNtCreateFile);
             writer.Write(@this.MonitorZwCreateOpenQueryFile);
             writer.Write((byte)@this.PreserveOutputs);
+            writer.Write((@this.PreserveOutputsExcludeFilter?.Length).HasValue);
+            if ((@this.PreserveOutputsExcludeFilter?.Length).HasValue)
+            {
+                writer.Write(@this.PreserveOutputsExcludeFilter);
+            }
             writer.Write(@this.UnexpectedFileAccessesAreErrors);
             writer.Write(@this.IgnorePreloadedDlls);
             writer.Write(@this.IgnoreDynamicWritesOnAbsentProbes);
@@ -176,6 +189,7 @@ namespace BuildXL.Utilities.Configuration
                 MonitorNtCreateFile = reader.ReadBoolean(),
                 MonitorZwCreateOpenQueryFile = reader.ReadBoolean(),
                 PreserveOutputs = (PreserveOutputsMode)reader.ReadByte(),
+                PreserveOutputsExcludeFilter = reader.ReadBoolean() ? reader.ReadString() : null,
                 UnexpectedFileAccessesAreErrors = reader.ReadBoolean(),
                 IgnorePreloadedDlls = reader.ReadBoolean(),
                 IgnoreDynamicWritesOnAbsentProbes = reader.ReadBoolean(),

@@ -65,11 +65,11 @@ namespace BuildXL.Pips
                         pipAsIpc.ServicePipDependencies.Any() ? ServicePipKind.ServiceClient :
                         ServicePipKind.None;
                     var serviceInfo = new ServiceInfo(serviceKind, pipAsIpc.ServicePipDependencies);
-                    mutable = new ProcessMutablePipState(pip.PipType, pip.SemiStableHash, default(PageableStoreId), serviceInfo, Process.Options.IsLight, Process.MinPriority);
+                    mutable = new ProcessMutablePipState(pip.PipType, pip.SemiStableHash, default(PageableStoreId), serviceInfo, Process.Options.IsLight, Process.MinPriority, pipAsIpc.Tags);
                     break;
                 case PipType.Process:
                     var pipAsProcess = (Process)pip;
-                    mutable = new ProcessMutablePipState(pip.PipType, pip.SemiStableHash, default(PageableStoreId), pipAsProcess.ServiceInfo, pipAsProcess.ProcessOptions, pipAsProcess.Priority);
+                    mutable = new ProcessMutablePipState(pip.PipType, pip.SemiStableHash, default(PageableStoreId), pipAsProcess.ServiceInfo, pipAsProcess.ProcessOptions, pipAsProcess.Priority, pipAsProcess.Tags);
                     break;
                 case PipType.CopyFile:
                     var pipAsCopy = (CopyFile)pip;
@@ -148,10 +148,10 @@ namespace BuildXL.Pips
         public virtual bool MustOutputsRemainWritable() => false;
 
         /// <summary>
-        /// Checks if pip outputs must be preserved.
+        /// Checks if pip outputs is enabled
         /// </summary>
         /// <returns></returns>
-        public virtual bool IsPreservedOutputsPip() => false;
+        public virtual bool IsPreservedOutputsPipEnabled() => false;
 
         /// <summary>
         /// Checks if pip runs tool with incremental capability.
@@ -209,6 +209,7 @@ namespace BuildXL.Pips
         internal readonly ServiceInfo ServiceInfo;
         internal readonly Process.Options ProcessOptions;
         internal readonly int Priority;
+        internal ReadOnlyArray<StringId> Tags;
 
         internal ProcessMutablePipState(
             PipType pipType, 
@@ -216,12 +217,14 @@ namespace BuildXL.Pips
             PageableStoreId storeId, 
             ServiceInfo serviceInfo, 
             Process.Options processOptions,
-            int priority)
+            int priority,
+            ReadOnlyArray<StringId>tags)
             : base(pipType, semiStableHash, storeId)
         {
             ServiceInfo = serviceInfo;
             ProcessOptions = processOptions;
             Priority = priority;
+            Tags = tags;
         }
 
         /// <summary>
@@ -240,6 +243,18 @@ namespace BuildXL.Pips
             writer.Write(ServiceInfo, ServiceInfo.InternalSerialize);
             writer.Write((int)ProcessOptions);
             writer.Write(Priority);
+            if (Tags != null)
+            {
+                writer.Write(Tags.Length);
+                foreach (StringId stringId in Tags)
+                {
+                    writer.Write(stringId.Value);
+                }
+            }
+            else
+            {
+                writer.Write(0);
+            }
         }
 
         internal static MutablePipState Deserialize(BuildXLReader reader, PipType pipType, long semiStableHash, PageableStoreId storeId)
@@ -247,11 +262,19 @@ namespace BuildXL.Pips
             ServiceInfo serviceInfo = reader.ReadNullable(ServiceInfo.InternalDeserialize);
             int options = reader.ReadInt32();
             int priority = reader.ReadInt32();
+            int tagsLength = reader.ReadInt32();
 
-            return new ProcessMutablePipState(pipType, semiStableHash, storeId, serviceInfo, (Process.Options)options, priority);
+            StringId[] tags = new StringId[tagsLength];
+            for (int i = 0; i < tagsLength; i++)
+            {
+                int stringIdValue = reader.ReadInt32();
+                tags[i] = StringId.UnsafeCreateFrom(stringIdValue);
+            }
+
+            return new ProcessMutablePipState(pipType, semiStableHash, storeId, serviceInfo, (Process.Options)options, priority, ReadOnlyArray<StringId>.From(new StringId[0]));
         }
 
-        public override bool IsPreservedOutputsPip() => (ProcessOptions & Process.Options.AllowPreserveOutputs) != 0;
+        public override bool IsPreservedOutputsPipEnabled() => (ProcessOptions & Process.Options.AllowPreserveOutputs) != 0;
 
         public override bool IsIncrementalTool() => (ProcessOptions & Process.Options.IncrementalTool) == Process.Options.IncrementalTool;
 

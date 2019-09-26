@@ -36,6 +36,7 @@ namespace BuildXL.Scheduler.Fingerprints
         /// 60: Save AbsolutePath in the StaticOutputHashes
         /// 62: FileContentInfo - change how length/existence is stored.
         /// 63: IncrementalTool - change reparsepoint probes and enumeration probes to read.
+        /// 64: PreserveOutputExcludeFilter - exclude certain pip from preserving outputs even that pip has enabled allowPreserveOutputs
         /// </remarks>
         TwoPhaseV2 = 63,
     }

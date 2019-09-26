@@ -4093,6 +4093,8 @@ namespace BuildXL.Scheduler
 
             return process.AllowPreserveOutputs &&
                    environment.Configuration.Sandbox.UnsafeSandboxConfiguration.PreserveOutputs != PreserveOutputsMode.Disabled;
+            //&& Pip.DeterminAllowPreserveOutputs(environment.Context.StringTable, environment.Configuration.Sandbox.UnsafeSandboxConfiguration.PreserveOutputsExcludeFilter, process.Tags);
+
         }
 
         private static bool IsProcessPreservingOutputFile(IPipExecutionEnvironment environment, Process process, FileArtifact fileArtifact, FileOutputData fileOutputData)

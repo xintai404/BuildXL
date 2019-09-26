@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.ContractsLight;
 using System.Globalization;
@@ -1189,6 +1190,20 @@ namespace BuildXL.FrontEnd.Script.Ambients.Transformers
             if (Converter.ExtractOptionalBoolean(unsafeOptionsObjLit, m_unsafeAllowPreservedOutputs) == true)
             {
                 processBuilder.Options |= Process.Options.AllowPreserveOutputs;
+                if (processBuilder.Tags.IsValid && processBuilder.Tags.Length > 0)
+                {
+                    if(context.FrontEndHost.Configuration.Sandbox.UnsafeSandboxConfiguration.PreserveOutputsExcludeFilter != null)
+                    {
+                        var exclusionFilters = context.FrontEndHost.Configuration.Sandbox.UnsafeSandboxConfiguration.PreserveOutputsExcludeFilter.Split(new char[] { ',' })
+                            .Select(s => StringId.Create(context.StringTable, s));
+                        HashSet<StringId> tags = new HashSet<StringId>(processBuilder.Tags.GetMutableArrayUnsafe());
+                        if(!exclusionFilters.Any(exdFilter => tags.Contains(exdFilter)))
+                        {
+                            processBuilder.Options &= ~(Process.Options.AllowPreserveOutputs);
+                        }
+                    }
+                }
+                
 
                 if (context.FrontEndHost.Configuration.Sandbox.PreserveOutputsForIncrementalTool)
                 {
@@ -1214,6 +1229,11 @@ namespace BuildXL.FrontEnd.Script.Ambients.Transformers
             }
 
             processBuilder.PreserveOutputWhitelist = ProcessOptionalPathArray(unsafeOptionsObjLit, m_unsafePreserveOutputWhitelist, strict: false, skipUndefined: true);
+        }
+
+        private T ObjectPool<T>(Func<T> p1, Func<object, object> p2)
+        {
+            throw new NotImplementedException();
         }
 
         private PipId InterpretFinalizationPipArguments(Context context, ObjectLiteral obj)

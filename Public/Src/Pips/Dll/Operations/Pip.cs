@@ -417,5 +417,28 @@ namespace BuildXL.Pips.Operations
 
             return $"{maybeModuleName}{valueName}{toolName} [{qualifierName}]";
         }
+
+        /// <summary>
+        /// Determin if pip's allowPreserveOutputs should be respected
+        /// </summary>
+        public static bool DeterminAllowPreserveOutputs(StringTable stringTable, string preserveOutputsExlcudeFilter, ReadOnlyArray<StringId>tags)
+        {
+            if(tags == null || string.IsNullOrEmpty(preserveOutputsExlcudeFilter))
+            {
+                return true;
+            }
+
+            StringId[] tagsArray = tags.GetMutableArrayUnsafe();
+            foreach (string preserveOutputsExcluderFilter in preserveOutputsExlcudeFilter.Split(','))
+            {
+                //if the tag matchs on the exclusion filter then disallow preserveoutput
+                if (Array.IndexOf(tagsArray, StringId.Create(stringTable, preserveOutputsExcluderFilter)) > 0)
+                {
+                    return false;
+                }
+
+            }
+            return true;
+        }
     }
 }
