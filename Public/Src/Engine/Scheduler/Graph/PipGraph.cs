@@ -982,10 +982,17 @@ namespace BuildXL.Scheduler.Graph
 
             Process process = PipTable.HydratePip(pipId, PipQueryContext.PreserveOutput) as Process;
 
+<<<<<<< HEAD
             //if (!Pip.DeterminAllowPreserveOutputs(Context.StringTable, preserveOutputExclusionFilter, process.Tags))
             //{
             //    return false;
             //}
+=======
+            if (!Pip.DeterminAllowPreserveOutputs(Context.StringTable, preserveOutputExclusionFilter, process.Tags))
+            {
+                return false;
+            }
+>>>>>>> 7362f72f92e1321e3649a0bd971b6584d434d988
 
             return PipArtifacts.IsPreservedOutputByPip(process, artifact.Path, Context.PathTable);
         }
